@@ -1,4 +1,4 @@
-<img width="676" height="1138" alt="image" src="https://github.com/user-attachments/assets/f1bff500-a7d5-4c59-8997-d59e4556ccd1" /># 🚀 React/TanStack Query
+# 🚀 React/TanStack Query
 
 ## 🤔 What
 
