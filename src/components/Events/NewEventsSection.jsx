@@ -1,42 +1,18 @@
-import { useEffect, useState } from 'react';
-
-import LoadingIndicator from '../UI/LoadingIndicator.jsx';
-import ErrorBlock from '../UI/ErrorBlock.jsx';
-import EventItem from './EventItem.jsx';
+import LoadingIndicator from "../UI/LoadingIndicator.jsx";
+import ErrorBlock from "../UI/ErrorBlock.jsx";
+import EventItem from "./EventItem.jsx";
+import { useQuery } from "@tanstack/react-query";
+import { fetchEvents } from "../../util/http.js";
 
 export default function NewEventsSection() {
-  const [data, setData] = useState();
-  const [error, setError] = useState();
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    async function fetchEvents() {
-      setIsLoading(true);
-      const response = await fetch('http://localhost:3000/events');
-
-      if (!response.ok) {
-        const error = new Error('An error occurred while fetching the events');
-        error.code = response.status;
-        error.info = await response.json();
-        throw error;
-      }
-
-      const { events } = await response.json();
-
-      return events;
-    }
-
-    fetchEvents()
-      .then((events) => {
-        setData(events);
-      })
-      .catch((error) => {
-        setError(error);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["event"],
+    queryFn: fetchEvents,
+    staleTime: 5000, // it is the time by which we can take control over the refetching of the data whenever the window refocus or the component remount, [it is 0 initially]
+    // gcTime: 1000, // it is initially 50000 (5min)
+    // we can add to get control over the GC time.
+    // gc time: if the component isnt in using the cache data will deleted after 5 min
+  });
 
   let content;
 
@@ -46,7 +22,10 @@ export default function NewEventsSection() {
 
   if (error) {
     content = (
-      <ErrorBlock title="An error occurred" message="Failed to fetch events" />
+      <ErrorBlock
+        title="An error occurred"
+        message={error.info?.message || "Ops! Can not fetch events!"}
+      />
     );
   }
 
