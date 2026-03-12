@@ -20,7 +20,7 @@ export default function NewEventsSection() {
     content = <LoadingIndicator />;
   }
 
-  if (error) {
+  if (isError) {
     content = (
       <ErrorBlock
         title="An error occurred"
