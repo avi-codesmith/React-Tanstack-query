@@ -4,8 +4,11 @@ import Header from "../Header.jsx";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { deleteEvent, fetchEvent, queryClient } from "../../util/http.js";
 import ErrorBlock from "../UI/ErrorBlock.jsx";
+import { useState } from "react";
+import Modal from "../UI/Modal.jsx";
 
 export default function EventDetails() {
+  const [showModal, setShowModel] = useState(false);
   const navigate = useNavigate();
   const params = useParams("id");
   const id = params.id;
@@ -17,13 +20,15 @@ export default function EventDetails() {
 
   const {
     mutate,
-    isError: deleteError,
-    isPending: deletePending,
+    isError: isdeleteError,
+    isPending: isdeletePending,
+    error: deleteError,
   } = useMutation({
     mutationFn: deleteEvent,
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["events"],
+        refetchType: "none",
       });
       navigate("/events");
     },
@@ -31,6 +36,14 @@ export default function EventDetails() {
 
   function hanldeDelete() {
     mutate({ id });
+  }
+
+  function handleShow() {
+    setShowModel(true);
+  }
+
+  function handleCancel() {
+    setShowModel(false);
   }
 
   let content;
@@ -57,16 +70,38 @@ export default function EventDetails() {
   if (data) {
     content = (
       <>
+        {showModal && (
+          <Modal onClose={handleCancel}>
+            <h2>Are You Sure?</h2>
+            <p>
+              Do you really want to delete this item? this process can not be
+              undone!
+            </p>
+            <div className="form-actions">
+              {isdeletePending && <p>Deleting...please wait</p>}
+              {!isdeletePending && (
+                <>
+                  <button onClick={handleCancel} className="button-text">
+                    Cancel
+                  </button>
+                  <button onClick={hanldeDelete} className="button">
+                    Delete
+                  </button>
+                </>
+              )}
+              {isdeleteError && (
+                <ErrorBlock
+                  title="Ops! something went wrong"
+                  message={deleteError.info?.message}
+                />
+              )}
+            </div>
+          </Modal>
+        )}
         <header>
           <h1>{data && data.title}</h1>
           <nav>
-            <button onClick={hanldeDelete}>
-              {deletePending
-                ? "Deleting..."
-                : deleteError
-                  ? "Ops! Can't delete event"
-                  : "Delete"}
-            </button>
+            <button onClick={handleShow}>Delete</button>
             <Link to="edit">Edit</Link>
           </nav>
         </header>
